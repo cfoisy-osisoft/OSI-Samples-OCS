@@ -17,7 +17,7 @@ using IdentityModel.OidcClient;
 
 namespace CSVtoOCS
 {
-    class Program
+    public class Program
     {
         public static Exception toThrow = null;
         public static bool success = true;
@@ -28,6 +28,7 @@ namespace CSVtoOCS
         static ISdsMetadataService metaService;
         private static bool createStreams = true;
         static SdsStream stream1, stream2;
+        static bool test = false;
 
         static void Main(string[] args)
         {
@@ -62,15 +63,24 @@ namespace CSVtoOCS
                 var tenantId = configuration["TenantId"];
                 var namespaceId = configuration["NamespaceId"];
                 var resource = configuration["Resource"];
-                var clientId = configuration["ClientId"];
-                var clientKey = configuration["ClientKey"];
+                var clientId = configuration["ClientID"];
+
+                if (SystemBrowser.openBrowser == null)
+                {
+                    SystemBrowser.openBrowser = new OpenSystemBrowser();
+                }
+                else
+                {
+                    test = true;
+                    SystemBrowser.password = configuration["Password"];
+                    SystemBrowser.userName = configuration["UserName"];
+                }
 
                 (configuration as ConfigurationRoot).Dispose();
-                var uriResource = new Uri(resource);
-                               
+                var uriResource = new Uri(resource);                               
 
                 // Setup access to OCS
-                AuthenticationHandler_PKCE authenticationHandler = new AuthenticationHandler_PKCE(tenantId, clientId);
+                AuthenticationHandler_PKCE authenticationHandler = new AuthenticationHandler_PKCE(tenantId, clientId, resource);
 
                 SdsService sdsService = new SdsService(new Uri(resource), authenticationHandler);
                 dataService = sdsService.GetDataService(tenantId, namespaceId);
@@ -120,18 +130,19 @@ namespace CSVtoOCS
                 else
                 {
                     // if we created the types and streams, lets remove those too
-
                     await RunInTryCatch(metaService.DeleteStreamAsync, stream1.Id);
                     await RunInTryCatch(metaService.DeleteStreamAsync, stream2.Id);
                     await RunInTryCatch(metaService.DeleteStreamAsync, stream1.TypeId);
-
-
+                    
                     // Check deletes
                     await RunInTryCatchExpectException(metaService.GetStreamAsync, stream1.Id);
                     await RunInTryCatchExpectException(metaService.GetStreamAsync, stream2.Id);
                     await RunInTryCatchExpectException(metaService.GetTypeAsync, stream1.TypeId);
                 }
             }
+
+            if (toThrow != null)
+                throw toThrow;
             return success;
         }
 

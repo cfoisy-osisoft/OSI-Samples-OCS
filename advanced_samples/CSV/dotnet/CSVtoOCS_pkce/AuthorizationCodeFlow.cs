@@ -32,13 +32,13 @@ namespace CSVtoOCS
 
         private string _tenantId = null;
 
-        public AuthenticationHandler_PKCE(string tenantId, string clientId, string scope = "openid ocsapi")
+        public AuthenticationHandler_PKCE(string tenantId, string clientId, string resource = "https://dat-b.osisoft.com", string scope = "openid ocsapi")
         {
             _tenantId = tenantId;
             _clientId = clientId;
             _scope = scope
                 ;
-            AuthorizationCodeFlow.OcsUrl = "https://dat-b.osisoft.com";
+            AuthorizationCodeFlow.OcsUrl = resource;
             AuthorizationCodeFlow.RedirectHost = "https://127.0.0.1";
             AuthorizationCodeFlow.RedirectPort = 54567;
             AuthorizationCodeFlow.RedirectPath = "signin-oidc";
