@@ -28,7 +28,7 @@ variables:
   - name: projPath
     value: '/advanced_samples/CSV/dotnet/CSVtoOCS_pkce'
   - name: testPath
-    value: '/advanced_samples/CSV/dotnet/CSVtoOCS_pkceTests'
+    value: '/advanced_samples/CSV/dotnet/CSVtoOCS_pkceTest'
   - name: CredFile
     value: appsettings.json
   - name: CredFileLibrary
