@@ -65,13 +65,12 @@ namespace CSVtoOCS
                 var resource = configuration["Resource"];
                 var clientId = configuration["ClientID"];
 
-                if (SystemBrowser.openBrowser == null)
+                if (!test)
                 {
                     SystemBrowser.openBrowser = new OpenSystemBrowser();
                 }
                 else
                 {
-                    test = true;
                     SystemBrowser.password = configuration["Password"];
                     SystemBrowser.userName = configuration["UserName"];
                 }
