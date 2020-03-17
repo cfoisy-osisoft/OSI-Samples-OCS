@@ -38,8 +38,9 @@ namespace CSVtoOCS
             MainAsync(fileLocation: fileLocationIn).GetAwaiter().GetResult();
         }
 
-        public static async Task<bool> MainAsync(bool test = false, string fileLocation = "datafile.csv")
+        public static async Task<bool> MainAsync(bool testIn = false, string fileLocation = "datafile.csv")
         {
+            test = testIn;
             success = true;
 
             try
