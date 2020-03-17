@@ -43,8 +43,8 @@ namespace CSVtoOCS
             AuthorizationCodeFlow.RedirectPort = 54567;
             AuthorizationCodeFlow.RedirectPath = "signin-oidc";
 
-
-            SystemBrowser.openBrowser = new OpenSystemBrowser();
+            if(SystemBrowser.openBrowser == null)
+                SystemBrowser.openBrowser = new OpenSystemBrowser();
             // Get access token.
 
         }

@@ -84,8 +84,20 @@ namespace CSVtoOCS
 
                 SdsService sdsService = new SdsService(new Uri(resource), authenticationHandler);
                 dataService = sdsService.GetDataService(tenantId, namespaceId);
-                var metaService = sdsService.GetMetadataService(tenantId, namespaceId);
-                var streams = await metaService.GetStreamsAsync();
+                metaService = sdsService.GetMetadataService(tenantId, namespaceId);
+
+                if (createStreams)
+                {
+                    metaService = sdsService.GetMetadataService(tenantId, namespaceId);
+
+                    SdsType typeToCreate = SdsTypeBuilder.CreateSdsType<TemperatureReadings>();
+                    typeToCreate.Id = "TemperatureReadings";
+                    await metaService.GetOrCreateTypeAsync(typeToCreate);
+                    stream1 = new SdsStream { Id = "stream1", TypeId = typeToCreate.Id };
+                    stream2 = new SdsStream { Id = "stream2", TypeId = typeToCreate.Id };
+                    stream1 = await metaService.GetOrCreateStreamAsync(stream1);
+                    stream2 = await metaService.GetOrCreateStreamAsync(stream2);
+                }
 
                 // Loop over each stream to send to and send the data as one call.
                 foreach (string streamId in streamsIdsToSendTo)
@@ -95,17 +107,6 @@ namespace CSVtoOCS
                                               .Select(dataEntry => new TemperatureReadings(dataEntry)) // transforms it to the right data
                                               .ToList(); // needed in IList format for insertValues
                     await dataService.InsertValuesAsync(streamId, valueToSend);
-                    if (createStreams)
-                    {
-                        metaService = sdsService.GetMetadataService(tenantId, namespaceId);
-
-                        SdsType typeToCreate = SdsTypeBuilder.CreateSdsType<TemperatureReadingsWithIds>();
-                        typeToCreate.Id = "TemperatureReadingsWithIds";
-                        await metaService.GetOrCreateTypeAsync(typeToCreate);
-
-                        stream1 = await metaService.GetOrCreateStreamAsync(new SdsStream { Id = "stream1", TypeId = typeToCreate.Id });
-                        stream2 = await metaService.GetOrCreateStreamAsync(new SdsStream { Id = "stream2", TypeId = typeToCreate.Id });
-                    }
                 }
 
                 //checks to make sure values are written
@@ -132,7 +133,7 @@ namespace CSVtoOCS
                     // if we created the types and streams, lets remove those too
                     await RunInTryCatch(metaService.DeleteStreamAsync, stream1.Id);
                     await RunInTryCatch(metaService.DeleteStreamAsync, stream2.Id);
-                    await RunInTryCatch(metaService.DeleteStreamAsync, stream1.TypeId);
+                    await RunInTryCatch(metaService.DeleteTypeAsync, stream1.TypeId);
                     
                     // Check deletes
                     await RunInTryCatchExpectException(metaService.GetStreamAsync, stream1.Id);
@@ -182,8 +183,9 @@ namespace CSVtoOCS
 
                 Console.WriteLine($"Got error.  Expected {methodToRun.Method.Name} with value {value} to throw an error but it did not:");
             }
-            catch
+            catch(Exception ex)
             {
+
             }
         }
 
@@ -267,15 +269,16 @@ namespace CSVtoOCS
             {
             }
 
-            public TemperatureReadings (TemperatureReadingsWithIds zzz)
+            public TemperatureReadings (TemperatureReadingsWithIds tempReading)
             {
-                Timestamp = zzz.Timestamp;
-                Temperature1 = zzz.Temperature1;
-                Temperature2 = zzz.Temperature2;
-                Code = zzz.Code;
+                Timestamp = tempReading.Timestamp;
+                Temperature1 = tempReading.Temperature1;
+                Temperature2 = tempReading.Temperature2;
+                Code = tempReading.Code;
             }
 
 
+            [SdsMember(IsKey = true)]
             public DateTime Timestamp { get; set; }
             public int Temperature1 { get; set; }
             public double Temperature2 { get; set; }
