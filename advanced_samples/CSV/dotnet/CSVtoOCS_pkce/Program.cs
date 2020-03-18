@@ -183,7 +183,7 @@ namespace CSVtoOCS
 
                 Console.WriteLine($"Got error.  Expected {methodToRun.Method.Name} with value {value} to throw an error but it did not:");
             }
-            catch(Exception ex)
+            catch
             {
 
             }

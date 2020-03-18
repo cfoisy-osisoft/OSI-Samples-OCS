@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -184,9 +185,11 @@ namespace CSVtoOCS
                 };
 
                 _oidcClient = new OidcClient(options);
+                var dict = new Dictionary<string, string>();
+                dict.Add("acr_values", $"tenant:{tenantId}");
                 var loginRequest = new LoginRequest
                 {
-                    FrontChannelExtraParameters = new { acr_values = $"tenant:{tenantId}" }
+                    FrontChannelExtraParameters = dict
                 };
 
                 // Login with the client. This call will open a new tab in your default browser
@@ -299,6 +302,12 @@ namespace CSVtoOCS
                     return new BrowserResult { ResultType = BrowserResultType.UnknownError, Error = ex.Message };
                 }
             }
+        }
+
+
+        public async Task<BrowserResult> InvokeAsync(BrowserOptions options, CancellationToken token)
+        {
+            return await InvokeAsync(options);
         }
     }
 
