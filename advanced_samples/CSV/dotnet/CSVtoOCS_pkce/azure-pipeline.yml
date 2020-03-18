@@ -69,6 +69,59 @@ jobs:
         workingDirectory: $(Build.SourcesDirectory)$(testPath)/
         displayName: 'Run tests'
 
-  - template: '/miscellaneous/build_templates/analysis.yml'
-    parameters:
-      language: dotnet
+  - job: Analysis
+    pool:
+      name: 00-OSIManaged-Test
+      demands: COMPUTERNAME -equals $(buildAgent)
+    steps:
+      - script: |
+          echo Clean
+          call dotnet clean
+          echo Restore
+          call dotnet restore --ignore-failed-sources
+          echo Build
+          call dotnet msbuild -p:HIGHENTROPYVA=true
+          echo Complete
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        displayName: 'Build (DotNet)'
+
+      # BinSkim
+      - task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-binskim.BinSkim@3
+        displayName: 'BinSkim (DotNet): Analyze'
+        inputs:
+          AnalyzeTarget: '$(Build.SourcesDirectory)\CSVtoOCS_pkce.dll;$(Build.SourcesDirectory)\CSVtoOCS_pkce.exe'
+        condition: and(eq('${{ parameters.language }}', 'dotnet'), eq(${{ parameters.skipBinSkim }}, false))
+
+      - task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-postanalysis.PostAnalysis@1
+        displayName: 'BinSkim (DotNet): Post-Analysis'
+        inputs:
+          BinSkim: true
+          BinSkimBreakOn: WarningAbove
+        condition: and(eq('${{ parameters.language }}', 'dotnet'), eq(${{ parameters.skipBinSkim }}, false))
+
+         # Coverity
+      - script: if not exist $(covFolder) mkdir $(covFolder)
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        displayName: 'Coverity: Make dir'
+        continueOnError: true
+
+      # - DotNet
+      - script: |
+          echo Clean
+          call dotnet clean
+          echo Restore
+          call dotnet restore
+          echo Build
+          "$(covPath)cov-build" --dir $(covFolder) dotnet build
+          echo Complete
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        displayName: 'Coverity (DotNet): Build'
+        condition: eq('${{ parameters.language }}', 'dotnet')
+
+      - script: '"$(covPath)cov-analyze" --dir .'
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)/
+        displayName: 'Coverity: Analyze'
+
+      - script: '"$(covPath)cov-commit-defects" --stream "Engineering Incubation - $(covStream)" --host $(covServer) --https-port 8443 --auth-key-file "$(covAuthPath)" --dir .'
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)/
+        displayName: 'Coverity: Upload'
