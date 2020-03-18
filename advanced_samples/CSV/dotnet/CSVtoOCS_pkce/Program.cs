@@ -27,7 +27,7 @@ namespace CSVtoOCS
         static ISdsDataService dataService;
         static ISdsMetadataService metaService;
         private static bool createStreams = true;
-        static SdsStream stream1, stream2;
+        static string stream1ID = "stream1", stream2ID = "stream2", typeID = "TemperatureReadings";
         static bool test = false;
 
         static void Main(string[] args)
@@ -91,10 +91,10 @@ namespace CSVtoOCS
                     metaService = sdsService.GetMetadataService(tenantId, namespaceId);
 
                     SdsType typeToCreate = SdsTypeBuilder.CreateSdsType<TemperatureReadings>();
-                    typeToCreate.Id = "TemperatureReadings";
+                    typeToCreate.Id = typeID;
                     await metaService.GetOrCreateTypeAsync(typeToCreate);
-                    stream1 = new SdsStream { Id = "stream1", TypeId = typeToCreate.Id };
-                    stream2 = new SdsStream { Id = "stream2", TypeId = typeToCreate.Id };
+                    var stream1 = new SdsStream { Id = stream1ID, TypeId = typeToCreate.Id };
+                    var stream2 = new SdsStream { Id = stream2ID, TypeId = typeToCreate.Id };
                     stream1 = await metaService.GetOrCreateStreamAsync(stream1);
                     stream2 = await metaService.GetOrCreateStreamAsync(stream2);
                 }
@@ -131,14 +131,14 @@ namespace CSVtoOCS
                 else
                 {
                     // if we created the types and streams, lets remove those too
-                    await RunInTryCatch(metaService.DeleteStreamAsync, stream1.Id);
-                    await RunInTryCatch(metaService.DeleteStreamAsync, stream2.Id);
-                    await RunInTryCatch(metaService.DeleteTypeAsync, stream1.TypeId);
+                    await RunInTryCatch(metaService.DeleteStreamAsync, stream1ID);
+                    await RunInTryCatch(metaService.DeleteStreamAsync, stream2ID);
+                    await RunInTryCatch(metaService.DeleteTypeAsync, typeID);
                     
                     // Check deletes
-                    await RunInTryCatchExpectException(metaService.GetStreamAsync, stream1.Id);
-                    await RunInTryCatchExpectException(metaService.GetStreamAsync, stream2.Id);
-                    await RunInTryCatchExpectException(metaService.GetTypeAsync, stream1.TypeId);
+                    await RunInTryCatchExpectException(metaService.GetStreamAsync, stream1ID);
+                    await RunInTryCatchExpectException(metaService.GetStreamAsync, stream2ID);
+                    await RunInTryCatchExpectException(metaService.GetTypeAsync, typeID);
                 }
             }
 
