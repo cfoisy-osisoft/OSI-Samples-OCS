@@ -86,18 +86,17 @@ jobs:
         displayName: 'Build (DotNet)'
 
       # BinSkim
-      - task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-binskim.BinSkim@3
-        displayName: 'BinSkim (DotNet): Analyze'
+      - task: BinSkim@3
         inputs:
-          AnalyzeTarget: '$(Build.SourcesDirectory)\CSVtoOCS_pkce.dll;$(Build.SourcesDirectory)\CSVtoOCS_pkce.exe'
-        condition: and(eq('${{ parameters.language }}', 'dotnet'), eq(${{ parameters.skipBinSkim }}, false))
+          InputType: 'Basic'
+          Function: 'analyze'
+          AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\CSVtoOCS_pkce.dll;$(Build.ArtifactStagingDirectory)\CSVtoOCS_pkce.exe'
 
-      - task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-postanalysis.PostAnalysis@1
-        displayName: 'BinSkim (DotNet): Post-Analysis'
+      - task: BinSkim@3
         inputs:
-          BinSkim: true
-          BinSkimBreakOn: WarningAbove
-        condition: and(eq('${{ parameters.language }}', 'dotnet'), eq(${{ parameters.skipBinSkim }}, false))
+          InputType: 'Basic'
+          Function: 'dump'
+          DumpTarget: '$(Build.ArtifactStagingDirectory)'
 
          # Coverity
       - script: if not exist $(covFolder) mkdir $(covFolder)
@@ -116,7 +115,6 @@ jobs:
           echo Complete
         workingDirectory: $(Build.SourcesDirectory)$(projPath)/
         displayName: 'Coverity (DotNet): Build'
-        condition: eq('${{ parameters.language }}', 'dotnet')
 
       - script: '"$(covPath)cov-analyze" --dir .'
         workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)/
