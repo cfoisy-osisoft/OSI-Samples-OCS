@@ -90,8 +90,7 @@ jobs:
         inputs:
           InputType: 'Basic'
           Function: 'analyze'
-          AnalyzeTarget: '$(Build.SourcesDirectory)$(projPath)/bin/Debug/netcoreapp3.0/CSVtoOCS_pkce.dll;$(Build.SourcesDirectory)$(projPath)/bin/Debug/netcoreapp3.0/CSVtoOCS_pkce.exe'
-          AnalyzeSymPath: '$(Build.SourcesDirectory)\advanced_samples\CSV\dotnet\CSVtoOCS_pkce\bin\Debug\netcoreapp3.0\'
+          AnalyzeTarget: '$(Build.SourcesDirectory)$(projPath)/bin/Debug/netcoreapp3.0/CSVtoOCS_pkce.dll'
 
       - task: BinSkim@3
         inputs:
