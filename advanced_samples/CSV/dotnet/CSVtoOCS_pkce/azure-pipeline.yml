@@ -32,7 +32,7 @@ variables:
   - name: CredFile
     value: appsettings.json
   - name: CredFileLibrary
-    value: product-readiness.sds_ts_dotnet.json
+    value: product-readiness.csvtoocs_dotnet.json
   - name: covStream
     value: SDS_CSVtoOCS
   - name: bdProject
