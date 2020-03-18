@@ -69,6 +69,7 @@ jobs:
         workingDirectory: $(Build.SourcesDirectory)$(testPath)/
         displayName: 'Run tests'
 
+#manually added because there were issues with binskim
   - job: Analysis
     pool:
       name: 00-OSIManaged-Test
