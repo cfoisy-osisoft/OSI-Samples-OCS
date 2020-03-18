@@ -34,7 +34,7 @@ variables:
   - name: CredFileLibrary
     value: product-readiness.csvtoocs_dotnet.json
   - name: covStream
-    value: SDS_CSVtoOCS
+    value: CSVtoOCS_DotNet 
   - name: bdProject
     value: SDS_CSVtoOCS
 
