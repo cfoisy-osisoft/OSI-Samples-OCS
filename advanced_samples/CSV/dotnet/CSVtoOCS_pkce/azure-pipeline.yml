@@ -36,7 +36,7 @@ variables:
   - name: covStream
     value: CSVtoOCS_DotNet 
   - name: bdProject
-    value: SDS_CSVtoOCS
+    value: CSVtoOCS_DotNet
 
 jobs:
   - job: Tests
