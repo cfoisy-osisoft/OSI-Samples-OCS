@@ -99,6 +99,18 @@ jobs:
           Function: 'dump'
           DumpTarget: '$(Build.ArtifactStagingDirectory)'
 
+      - task: synopsys-detect.synopsys-detect.synopsys-detect-task.SynopsysDetectTask@2
+        inputs:
+          Products: BD
+          BlackDuckService: 'product-readiness.BlackDuck'
+          DetectArguments: |
+            --detect.project.name="product-readiness.$(bdProject)"
+            --detect.project.version.name="$(Build.SourceBranchName)"
+            --detect.source.path=$(Build.SourcesDirectory)$(projPath)/
+            --detect.code.location.name="code_location_$(bdProject)_$(Build.SourceBranchName)"
+            --detect.bom.aggregate.name="bom_$(bdProject)_$(Build.SourceBranchName)"
+        displayName: 'Synopsys: Detect'
+
          # Coverity
       - script: if not exist $(covFolder) mkdir $(covFolder)
         workingDirectory: $(Build.SourcesDirectory)$(projPath)/
@@ -124,3 +136,5 @@ jobs:
       - script: '"$(covPath)cov-commit-defects" --stream "Engineering Incubation - $(covStream)" --host $(covServer) --https-port 8443 --auth-key-file "$(covAuthPath)" --dir .'
         workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)/
         displayName: 'Coverity: Upload'
+        
+
