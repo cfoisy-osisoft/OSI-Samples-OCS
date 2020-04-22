@@ -1,5 +1,7 @@
 # CSV to OCS sample
 
+**Version:** 1.0.0
+
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/CSVtoOCS_DotNet?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=1393&branchName=master)
 
 Developed against DotNet 3.2.
@@ -24,7 +26,7 @@ dotnet test
 
 ## Configure constants for connecting and authentication
 
-Please update the appsettings.json file with the appropriate information as shown below.  This sample leverages PKCE login, so that way the user running this application has appropriate authorization.  
+Please update the appsettings.json file with the appropriate information as shown below. This sample leverages PKCE login, so that way the user running this application has appropriate authorization.
 
 ```json
 {
@@ -39,8 +41,7 @@ Please update the appsettings.json file with the appropriate information as show
 
 ## About this sample
 
-This sample sends data from a passed in csv file or from the datafile.csv file local to the application to OCS.  By default it will create the type and the streams used in the defauly datafile.csv.  It also by default will check the values to make sure they are saved on OCS.  At the end, it will delete whatever it added to the system.     
-
+This sample sends data from a passed in csv file or from the datafile.csv file local to the application to OCS. By default it will create the type and the streams used in the defauly datafile.csv. It also by default will check the values to make sure they are saved on OCS. At the end, it will delete whatever it added to the system.
 
 ---
 
