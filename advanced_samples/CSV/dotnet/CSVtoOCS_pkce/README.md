@@ -41,7 +41,10 @@ Please update the appsettings.json file with the appropriate information as show
 
 ## About this sample
 
-This sample sends data from a passed in csv file or from the datafile.csv file local to the application to OCS. By default it will create the type and the streams used in the defauly datafile.csv. It also by default will check the values to make sure they are saved on OCS. At the end, it will delete whatever it added to the system.
+This sample sends data from a passed in csv file or from the datafile.csv file local to the application to OCS. 
+By default it will create the type and the streams used in the defauly datafile.csv. 
+When testing it will check the values to make sure they are saved on OCS. 
+When testing, at the end, it will delete whatever it added to the system.
 
 ---
 
