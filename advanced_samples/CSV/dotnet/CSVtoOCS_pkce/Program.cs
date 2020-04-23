@@ -109,8 +109,11 @@ namespace CSVtoOCS
                     await dataService.InsertValuesAsync(streamId, valueToSend);
                 }
 
-                //checks to make sure values are written
-                await CheckValuesWrittenASync();
+                if (test)
+                {
+                    //checks to make sure values are written
+                    await CheckValuesWrittenASync();
+                }
             }
             catch (Exception ex)
             {
@@ -120,25 +123,28 @@ namespace CSVtoOCS
             }
             finally
             {
-                if (!createStreams)
+                if (test)
                 {
-                    // if we just created the data lets just remove that
-                    // Do Delete
-                    await DeleteValuesAsync();
-                    // Do Delete check
-                    await CheckDeletesValuesAsync();
-                }
-                else
-                {
-                    // if we created the types and streams, lets remove those too
-                    await RunInTryCatch(metaService.DeleteStreamAsync, stream1ID);
-                    await RunInTryCatch(metaService.DeleteStreamAsync, stream2ID);
-                    await RunInTryCatch(metaService.DeleteTypeAsync, typeID);
-                    
-                    // Check deletes
-                    await RunInTryCatchExpectException(metaService.GetStreamAsync, stream1ID);
-                    await RunInTryCatchExpectException(metaService.GetStreamAsync, stream2ID);
-                    await RunInTryCatchExpectException(metaService.GetTypeAsync, typeID);
+                    if (!createStreams)
+                    {
+                        // if we just created the data lets just remove that
+                        // Do Delete
+                        await DeleteValuesAsync();
+                        // Do Delete check
+                        await CheckDeletesValuesAsync();
+                    }
+                    else
+                    {
+                        // if we created the types and streams, lets remove those too
+                        await RunInTryCatch(metaService.DeleteStreamAsync, stream1ID);
+                        await RunInTryCatch(metaService.DeleteStreamAsync, stream2ID);
+                        await RunInTryCatch(metaService.DeleteTypeAsync, typeID);
+
+                        // Check deletes
+                        await RunInTryCatchExpectException(metaService.GetStreamAsync, stream1ID);
+                        await RunInTryCatchExpectException(metaService.GetStreamAsync, stream2ID);
+                        await RunInTryCatchExpectException(metaService.GetTypeAsync, typeID);
+                    }
                 }
             }
 
