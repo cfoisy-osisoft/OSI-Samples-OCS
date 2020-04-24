@@ -39,13 +39,13 @@ namespace CSVtoOCS
             _clientId = clientId;
             _scope = scope
                 ;
-            AuthorizationCodeFlow.OcsUrl = resource;
-            AuthorizationCodeFlow.RedirectHost = "https://127.0.0.1";
-            AuthorizationCodeFlow.RedirectPort = 54567;
-            AuthorizationCodeFlow.RedirectPath = "signin-oidc";
+            AuthorizationCode.OcsAddress = resource;
+            AuthorizationCode.RedirectHost = "https://127.0.0.1";
+            AuthorizationCode.RedirectPort = 54567;
+            AuthorizationCode.RedirectPath = "signin-oidc";
 
-            if(SystemBrowser.openBrowser == null)
-                SystemBrowser.openBrowser = new OpenSystemBrowser();
+            if(SystemBrowser.OpenBrowser == null)
+                SystemBrowser.OpenBrowser = new OpenSystemBrowser();
             // Get access token.
 
         }
@@ -56,7 +56,7 @@ namespace CSVtoOCS
             if (accessToken == null || expiration.AddSeconds(5) < DateTime.Now)
             {
                 (accessToken, expiration) =
-                    AuthorizationCodeFlow.GetAuthorizationCodeFlowAccessToken(_clientId, _scope, _tenantId);
+                    AuthorizationCode.GetAuthorizationCodeFlowAccessToken(_clientId, _scope, _tenantId);
             }
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer" , accessToken);
@@ -66,7 +66,7 @@ namespace CSVtoOCS
         }
     }
 
-    public static class AuthorizationCodeFlow
+    public static class AuthorizationCode
     {
         private static OidcClient _oidcClient;
         private static string _ocsIdentityUrl;
@@ -74,7 +74,7 @@ namespace CSVtoOCS
         private static int _redirectPort;
         private static string _redirectPath;
 
-        public static string OcsUrl
+        public static string OcsAddress
         {
             set => _ocsIdentityUrl = value + IdentityResourceSuffix;
         }
@@ -215,27 +215,32 @@ namespace CSVtoOCS
 
     public class OpenSystemBrowser : IOpenBrowser
     {
-        public void OpenBrowser(string url, string userName, string password)
+        public void OpenBrowser(string address, string userName, string password)
         {
+            if (string.IsNullOrEmpty(address))
+            {
+                throw new ArgumentException("Address cannot be null or empty", nameof(address));
+            }
+
             try
             {
-                Process.Start(url);
+                Process.Start(address);
             }
             catch
             {
                 // hack because of this: https://github.com/dotnet/corefx/issues/10361
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    url = url.Replace("&", "^&");
-                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                    address = address.Replace("&", "^&", StringComparison.OrdinalIgnoreCase);
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {address}") { CreateNoWindow = true });
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    Process.Start("xdg-open", url);
+                    Process.Start("xdg-open", address);
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    Process.Start("open", url);
+                    Process.Start("open", address);
                 }
                 else
                 {
@@ -247,11 +252,7 @@ namespace CSVtoOCS
 
     public class SystemBrowser : IBrowser
     {
-        public int Port { get; }
         private readonly string _path;
-        public static string userName;
-        public static string password;
-        public static IOpenBrowser openBrowser;
 
         public SystemBrowser(int? port = null, string path = null)
         {
@@ -267,6 +268,38 @@ namespace CSVtoOCS
             }
         }
 
+        public static string UserName { get; set; }
+        public static string Password { get; set; }
+        public static IOpenBrowser OpenBrowser { get; set; }
+
+        public int Port { get; }
+
+        public async Task<BrowserResult> InvokeAsync(BrowserOptions options, CancellationToken cancellationToken = new CancellationToken())
+        {
+            if (options == null)
+            {
+                throw new ArgumentException("Options cannot be null.", nameof(options));
+            }
+
+            using var listener = new LoopbackHttpListener(Port, _path);
+            OpenBrowser.OpenBrowser(options.StartUrl, UserName, Password);
+
+            try
+            {
+                var result = await listener.WaitForCallbackAsync().ConfigureAwait(false);
+                if (string.IsNullOrWhiteSpace(result))
+                {
+                    return new BrowserResult { ResultType = BrowserResultType.UnknownError, Error = "Empty response." };
+                }
+
+                return new BrowserResult { Response = result, ResultType = BrowserResultType.Success };
+            }
+            catch (TaskCanceledException ex)
+            {
+                return new BrowserResult { ResultType = BrowserResultType.Timeout, Error = ex.Message };
+            }
+        }
+
         private int GetRandomUnusedPort()
         {
             var listener = new TcpListener(IPAddress.Loopback, 0);
@@ -275,76 +308,60 @@ namespace CSVtoOCS
             listener.Stop();
             return port;
         }
-
-        public async Task<BrowserResult> InvokeAsync(BrowserOptions options)
-        {
-            using (var listener = new LoopbackHttpListener(Port, _path))
-            {
-                openBrowser.OpenBrowser(options.StartUrl, userName, password);
-
-                try
-                {
-                    var result = await listener.WaitForCallbackAsync();
-                    if (string.IsNullOrWhiteSpace(result))
-                    {
-                        return new BrowserResult
-                        { ResultType = BrowserResultType.UnknownError, Error = "Empty response." };
-                    }
-
-                    return new BrowserResult { Response = result, ResultType = BrowserResultType.Success };
-                }
-                catch (TaskCanceledException ex)
-                {
-                    return new BrowserResult { ResultType = BrowserResultType.Timeout, Error = ex.Message };
-                }
-                catch (Exception ex)
-                {
-                    return new BrowserResult { ResultType = BrowserResultType.UnknownError, Error = ex.Message };
-                }
-            }
-        }
-
-
-        public async Task<BrowserResult> InvokeAsync(BrowserOptions options, CancellationToken token)
-        {
-            return await InvokeAsync(options);
-        }
     }
 
     public class LoopbackHttpListener : IDisposable
     {
-        const int DefaultTimeout = 60 * 5; // 5 mins (in seconds)
-
-        IWebHost _host;
-        TaskCompletionSource<string> _source = new TaskCompletionSource<string>();
-
-        public string Url { get; }
+        private const int DefaultTimeout = 60 * 5; // 5 mins (in seconds)
+        private readonly IWebHost _host;
+        private readonly TaskCompletionSource<string> _source = new TaskCompletionSource<string>();
 
         public LoopbackHttpListener(int port, string path = null)
         {
-            path = path ?? string.Empty;
-            if (path.StartsWith("/")) path = path.Substring(1);
+            path ??= string.Empty;
+            if (path.StartsWith("/", StringComparison.OrdinalIgnoreCase)) path = path.Substring(1);
 
-            Url = $"https://127.0.0.1:{port}/{path}";
+            Address = $"https://127.0.0.1:{port}/{path}";
 
             _host = new WebHostBuilder()
                 .UseKestrel()
-                .UseUrls(Url)
+                .UseUrls(Address)
                 .Configure(Configure)
                 .Build();
             _host.Start();
         }
 
+        public string Address { get; }
+
         public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public Task<string> WaitForCallbackAsync(int timeoutInSeconds = DefaultTimeout)
         {
             Task.Run(async () =>
             {
-                await Task.Delay(500);
-                _host.Dispose();
+                await Task.Delay(timeoutInSeconds * 1000).ConfigureAwait(false);
+                _source.TrySetCanceled();
             });
+
+            return _source.Task;
         }
 
-        void Configure(IApplicationBuilder app)
+        protected virtual void Dispose(bool includeManaged)
+        {
+            if (includeManaged)
+            {
+                if (_host != null)
+                {
+                    _host.Dispose();
+                }
+            }
+        }
+
+        private void Configure(IApplicationBuilder app)
         {
             app.Run(async ctx =>
             {
@@ -361,11 +378,9 @@ namespace CSVtoOCS
                     }
                     else
                     {
-                        using (var sr = new StreamReader(ctx.Request.Body, Encoding.UTF8))
-                        {
-                            var body = await sr.ReadToEndAsync();
-                            SetResult(body, ctx);
-                        }
+                        using var sr = new StreamReader(ctx.Request.Body, Encoding.UTF8);
+                        var body = await sr.ReadToEndAsync().ConfigureAwait(false);
+                        SetResult(body, ctx);
                     }
                 }
                 else
@@ -382,7 +397,7 @@ namespace CSVtoOCS
                 ctx.Response.StatusCode = 200;
                 ctx.Response.ContentType = "text/html";
                 ctx.Response.WriteAsync("<h1>You can now return to the application.</h1>");
-                ctx.Response.Body.Flush();
+                ctx.Response.Body.FlushAsync();
 
                 _source.TrySetResult(value);
             }
@@ -391,19 +406,10 @@ namespace CSVtoOCS
                 ctx.Response.StatusCode = 400;
                 ctx.Response.ContentType = "text/html";
                 ctx.Response.WriteAsync("<h1>Invalid request.</h1>");
-                ctx.Response.Body.Flush();
+                ctx.Response.Body.FlushAsync();
+                throw;
             }
         }
-
-        public Task<string> WaitForCallbackAsync(int timeoutInSeconds = DefaultTimeout)
-        {
-            Task.Run(async () =>
-            {
-                await Task.Delay(timeoutInSeconds * 1000);
-                _source.TrySetCanceled();
-            });
-
-            return _source.Task;
-        }
     }
+
 }

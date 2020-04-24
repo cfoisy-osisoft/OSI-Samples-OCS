@@ -7,7 +7,7 @@ namespace CSVtoOCS_pkceTest
         [SetUp]
         public void Setup()
         {
-            CSVtoOCS.SystemBrowser.openBrowser = new OpenTestBrowser();
+            CSVtoOCS.SystemBrowser.OpenBrowser = new OpenTestBrowser();
         }
 
         [Test]

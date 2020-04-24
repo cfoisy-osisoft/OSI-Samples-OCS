@@ -68,12 +68,12 @@ namespace CSVtoOCS
 
                 if (!test)
                 {
-                    SystemBrowser.openBrowser = new OpenSystemBrowser();
+                    SystemBrowser.OpenBrowser = new OpenSystemBrowser();
                 }
                 else
                 {
-                    SystemBrowser.password = configuration["Password"];
-                    SystemBrowser.userName = configuration["UserName"];
+                    SystemBrowser.Password = configuration["Password"];
+                    SystemBrowser.UserName = configuration["UserName"];
                 }
 
                 (configuration as ConfigurationRoot).Dispose();
@@ -92,13 +92,16 @@ namespace CSVtoOCS
 
                     SdsType typeToCreate = SdsTypeBuilder.CreateSdsType<TemperatureReadings>();
                     typeToCreate.Id = typeID;
+                    Console.WriteLine("Creating Type");
                     await metaService.GetOrCreateTypeAsync(typeToCreate);
                     var stream1 = new SdsStream { Id = stream1ID, TypeId = typeToCreate.Id };
                     var stream2 = new SdsStream { Id = stream2ID, TypeId = typeToCreate.Id };
+                    Console.WriteLine("Creating Stream");
                     stream1 = await metaService.GetOrCreateStreamAsync(stream1);
                     stream2 = await metaService.GetOrCreateStreamAsync(stream2);
                 }
 
+                Console.WriteLine("Sending Data");
                 // Loop over each stream to send to and send the data as one call.
                 foreach (string streamId in streamsIdsToSendTo)
                 {
@@ -129,15 +132,18 @@ namespace CSVtoOCS
                     {
                         // if we just created the data lets just remove that
                         // Do Delete
+                        Console.WriteLine("Deleting Data");
                         await DeleteValuesAsync();
                         // Do Delete check
                         await CheckDeletesValuesAsync();
                     }
                     else
                     {
+                        Console.WriteLine("Deleting Streams");
                         // if we created the types and streams, lets remove those too
                         await RunInTryCatch(metaService.DeleteStreamAsync, stream1ID);
                         await RunInTryCatch(metaService.DeleteStreamAsync, stream2ID);
+                        Console.WriteLine("Deleting Types");
                         await RunInTryCatch(metaService.DeleteTypeAsync, typeID);
 
                         // Check deletes
