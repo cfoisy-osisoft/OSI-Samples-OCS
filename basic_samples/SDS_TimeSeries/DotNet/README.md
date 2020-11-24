@@ -1,14 +1,14 @@
 # Building a DotNet client to make REST API calls to the SDS Service
 
-**Version:** 1.1.2
+**Version:** 1.1.7
 
-[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_TS_DotNet?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=926&branchName=master)
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_TS_DotNet?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=926&branchName=master)
 
 The sample code in this topic demonstrates how to invoke the OCS client library. By examining the code, you will see how to create an SdsType and SdsStream, and how to create, read, update, and delete values in SDS. You will also see the summaries value call, and how to do bulk streams calls.
 
 When working in .NET, it is recommended that you use the OCS Client Libraries metapackage, OSIsoft.OCSClients. The metapackage is a NuGet package available from [https://api.nuget.org/v3/index.json](https://api.nuget.org/v3/index.json). The libraries offer a framework of classes that make client development easier.
 
-[SDS documentation](https://ocs-docs.osisoft.com/Documentation/SequentialDataStore/Data_Store_and_SDS.html)
+[SDS documentation](https://ocs-docs.osisoft.com/Content_Portal/Documentation/SequentialDataStore/Data_Store_and_SDS.html)
 
 Developed against DotNet 2.2.300.
 
@@ -34,7 +34,9 @@ dotnet test
 
 ## Configure constants for connecting and authentication
 
-The SDS Service is secured by obtaining tokens from Azure Active Directory. Such clients provide a client application identifier and an associated secret (or key) that are authenticated against the directory. The sample includes an appsettings.json configuration file to hold configuration strings, including the authentication strings. You must replace the placeholders with the authentication-related values you received from OSIsoft.
+The sample is configured using the file [appsettings.placeholder.json](SdsTsDotNet/appsettings.placeholder.json). Before editing, rename this file to `appsettings.json`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
+
+The SDS Service is secured by obtaining tokens from Azure Active Directory. Such clients provide a client application identifier and an associated secret (or key) that are authenticated against the directory. You must replace the placeholders in the `appsettings.json` file with the authentication-related values you received from OSIsoft.
 
 ```json
 {

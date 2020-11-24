@@ -1,5 +1,26 @@
 # Version History
 
+## 1.0.15 / 2020-11-02
+
+- Updated dependencies
+
+## 1.0.14 / 2020-10-19
+
+- Add metadata patch step
+
+## 1.0.13 / 2020-09-22
+
+- Updated dependencies
+
+## 1.0.12 / 2020-07-29
+
+- Add sample credentials file to gitignore and replace with placeholder
+
+## 1.0.11 / 2020-07-23
+
+- General code cleanup & formatting
+- Update sample to work against Edge Data Store
+
 ## 1.0.10 / 2020-06-11
 
 - Updated dependencies

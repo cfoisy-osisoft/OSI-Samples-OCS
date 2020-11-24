@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.IO;
 using Newtonsoft.Json;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Appium;
 using OpenQA.Selenium.Appium.Windows;
 using Xunit;
@@ -27,7 +28,7 @@ namespace OCSConnectorTest
             // Start Power BI
             var splashOptions = new AppiumOptions();
             splashOptions.AddAdditionalCapability("app", @"C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe");
-            using var splashSession = new WindowsDriver<WindowsElement>(appiumUri, splashOptions);
+            using var splashSession = new WindowsDriver<WindowsElement>(appiumUri, splashOptions, TimeSpan.FromMinutes(1));
 
             // Find main Power BI Window
             var desktopOptions = new AppiumOptions();
@@ -49,7 +50,6 @@ namespace OCSConnectorTest
             {
                 var closeStart = startWindow.FindElementByName("Close");
                 closeStart.Click();
-                System.Threading.Thread.Sleep(TimeSpan.FromSeconds(2));
             }
 
             // Clear cached credentials
@@ -79,11 +79,8 @@ namespace OCSConnectorTest
 
             // Enter query info
             var builderDialog = powerBISession.TryClickAndFindElementByAccessibilityId(connect, "BuilderDialog");
-            var uri = builderDialog.TryFindElementsByName("OSIsoft Cloud Services URI");
-            uri[1].SendKeys(Settings.OcsAddress);
-
-            var path = builderDialog.TryFindElementsByName("API URI Path (optional)");
-            path[1].SendKeys($"/api/v1/Tenants/{Settings.OcsTenantId}/Namespaces");
+            var uri = builderDialog.TryFindElementsByName("OSIsoft Cloud Services API Path");
+            uri[1].SendKeys($"{Settings.OcsAddress}/api/v1/Tenants/{Settings.OcsTenantId}/Namespaces");
 
             var timeout = builderDialog.TryFindElementsByName("Timeout (optional)");
             timeout[1].SendKeys("100");
@@ -102,10 +99,8 @@ namespace OCSConnectorTest
                 // Try going back and choosing "Use another account"
                 var back = oauthDialog.TryFindElementByAccessibilityId("idBtn_Back");
                 back.Click();
-                System.Threading.Thread.Sleep(TimeSpan.FromSeconds(2));
                 var otherAccount = oauthDialog.TryFindElementByName("Use another account");
                 otherAccount.Click();
-                System.Threading.Thread.Sleep(TimeSpan.FromSeconds(2));
                 email = oauthDialog.TryFindElementByAccessibilityId("i0116");
             }
 
@@ -113,12 +108,19 @@ namespace OCSConnectorTest
 
             var next = oauthDialog.TryFindElementByAccessibilityId("idSIButton9");
             next.Click();
-            System.Threading.Thread.Sleep(TimeSpan.FromSeconds(2));
             var pwd = oauthDialog.TryFindElementByAccessibilityId("i0118");
-            pwd.SendKeys(Settings.Password);
+            if (pwd != null)
+            {
+                // This step can be skipped if account is saved
+                pwd.SendKeys(Settings.Password);
+                pwd.SendKeys(Keys.Enter);
+                builderDialog = powerBISession.TryClickAndFindElementByAccessibilityId(connect, "BuilderDialog");
+            }
+            else
+            {
+                builderDialog = powerBISession.TryFindElementByAccessibilityId("BuilderDialog");
+            }
 
-            signin = oauthDialog.TryFindElementByAccessibilityId("idSIButton9");
-            builderDialog = powerBISession.TryClickAndFindElementByAccessibilityId(connect, "BuilderDialog");
             connect = builderDialog.TryFindElementByName("Connect");
             connect.Click();
 

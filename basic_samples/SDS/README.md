@@ -23,7 +23,8 @@ All SDS WaveForm samples are console applications that follow the same sequence 
 1. Use SdsStreamViews and SdsStreamViewMaps
 1. Use SdsStreamViews to update StreamType
 1. Filtering on types
-1. Tags & Metadata
+1. Create Tags & Metadata
+1. Update Metadata
 1. Delete events
 1. Create an SdsStream with a secondary index, update an existing stream to a secondary index and remove a secondary index
 1. Created an SdsType and SdsStream with Compound index
@@ -36,12 +37,12 @@ Step numbers are searchable in the code. For example, to find the relevant part 
 
 | Languages                                   | Test Status                                                                                                                                                                                                                       |
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [.NET Libraries](DotNet/SdsClientLibraries) | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_DotNet_Libs?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=887&branchName=master) |
-| [.NET REST API](DotNet/SdsRestApiCore)      | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_DotNet_REST?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=888&branchName=master) |
-| [Java](Java)                                | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_Java?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=920&branchName=master)        |
-| [Angular](JavaScript/Angular)               | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_Angular?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=921&branchName=master)     |
-| [NodeJS](JavaScript/NodeJS)                 | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_NodeJs?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=924&branchName=master)      |
-| [Python](Python)</a>                        | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_Python?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=925&branchName=master)      |
+| [.NET Libraries](DotNet/SdsClientLibraries) | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_DotNet_Libs?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=887&branchName=master) |
+| [.NET REST API](DotNet/SdsRestApiCore)      | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_DotNet_REST?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=888&branchName=master) |
+| [Java](Java)                                | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_Java?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=920&branchName=master)        |
+| [Angular](Angular)                          | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_Angular?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=921&branchName=master)     |
+| [NodeJS](NodeJS)                            | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_NodeJs?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=924&branchName=master)      |
+| [Python](Python)</a>                        | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/SDS_Python?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=925&branchName=master)      |
 
 ---
 

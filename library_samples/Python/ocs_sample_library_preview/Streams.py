@@ -421,6 +421,28 @@ class Streams(object):
         self.__baseClient.checkResponse(
             response, f"Failed to create metadata for Stream: {streamId}.")
 
+    def patchMetadata(self, namespace_id, streamId, patch):
+        """
+        Tells Sds Service to update metadata on the given streamId
+        :param namespace_id: id of namespace to work against
+        :param stream_id: id of the stream to update with metadata
+        :param patch: a JSON patch document
+        :return:
+        """
+        if namespace_id is None:
+            raise TypeError
+
+        response = self.__baseClient.request(
+            "patch",
+            self.__streamsPath.format(
+                tenant_id=self.__tenant,
+                namespace_id=namespace_id,
+                stream_id=streamId) + "/Metadata",
+            data=json.dumps(patch))
+
+        self.__baseClient.checkResponse(
+            response, f"Failed to update metadata for Stream: {streamId}.")
+
     def getTags(self, namespace_id, streamId):
         """
         Tells Sds Service to get tags associated with the given streamId
@@ -676,7 +698,7 @@ class Streams(object):
         return values
 
     def getRangeValues(self, namespace_id, stream_id, value_class, start, skip,
-                       count, reverse, boundary_type, streamView_id=""):
+                       count, reversed, boundary_type, streamView_id=""):
         """
         Retrieves JSON object representing a range of values from the stream
             specified by 'stream_id'
@@ -689,7 +711,7 @@ class Streams(object):
         :param skip: number of values to skip after start index.
             Important in paging
         :param count: number of values to return
-        :param reverse: which direction to go when getting values
+        :param reversed: which direction to go when getting values
         :param boundary_type: the boundary condition to use.
             Can be an SdsBoundaryType or the integer value
         :param streamView_id: streamview to map the results to
@@ -706,7 +728,7 @@ class Streams(object):
             raise TypeError
         if count is None:
             raise TypeError
-        if reverse is None or not isinstance(reverse, bool):
+        if reversed is None or not isinstance(reversed, bool):
             raise TypeError
         if boundary_type is None:
             raise TypeError
@@ -722,7 +744,7 @@ class Streams(object):
                 namespace_id=namespace_id,
                 stream_id=stream_id),
             params={"startIndex": start, "skip": skip, "count": count,
-                    "reverse": reverse, "boundary_type": boundary,
+                    "reversed": reversed, "boundary_type": boundary,
                     "streamView_id": streamView_id})
 
         self.__baseClient.checkResponse(

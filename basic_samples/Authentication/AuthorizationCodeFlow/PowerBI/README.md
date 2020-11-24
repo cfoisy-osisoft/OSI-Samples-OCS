@@ -1,8 +1,8 @@
 # Authorization Code Flow + PKCE Sample and Test for Power BI Desktop
 
-**Version:** 1.0.5
+**Version:** 1.0.11
 
-[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/Auth_PKCE_PowerBI?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=996&branchName=master)
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/Auth_PKCE_PowerBI?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=996&branchName=master)
 
 The OCS Connector for Power BI Desktop is used to get data from the OCS API into Power BI Desktop. The connector uses the OAuth Authorization Code with PKCE flow to connect to the API and get an access token.
 
@@ -23,12 +23,33 @@ The OCS Connector for Power BI Desktop is used to get data from the OCS API into
 1. Navigate to Security, and under Data Extensions select the option "(Not Recommended) Allow any extension to load without validation or warning"
 1. Click OK, acknowledge any warnings, then close Power BI Desktop
 1. Once prerequisites are installed, open `OCSConnector.sln` in Visual Studio
-1. Update the files url, tenant_id, and client_id with your respective values
+1. Rename the [url.placeholder](OCSConnector/url.placeholder), [tenant_id.placeholder](OCSConnector/tenant_id.placeholder), and [client_id.placeholder](OCSConnector/client_id.placeholder) to `url`, `tenant_id`, and `client_id`. This repository's `.gitignore` rules should prevent these files from being checked in to any fork or branch, to ensure this information is not compromised.
+1. Update the files `url`, `tenant_id`, and `client_id` with your respective values
    - Note: URL may not need to be modified from the default of `https://dat-b.osisoft.com/`
 1. Build the project
 1. In your user's `Documents` folder, create a folder `Power BI Desktop` with a subfolder `Custom Connectors`
 1. Copy the `.mez` file from either `/bin/Debug` or `/bin/Release` (depending on settings) into the new `Custom Connectors` folder
 1. Start up Power BI Desktop, and the connector should be available
+
+## Building without Visual Studio
+
+As of Power BI Version 2.84.861.0 64-bit (August 2020), Visual Studio builds Custom Connectors into a `.zip` file with a custom file extension, `.mez`. Since these files are in reality simple `.zip` files, it is possible to build or update the connector without using Visual Studio.
+
+To build the connector:
+
+1. Copy and rename the file `OCSConnector.pq` to `OCSConnector.m`
+1. Select the files `client_id`, `OCSConnector.m`, `resources.resx`, `tenant_id`, `url`, and all the `.png` files in the `OCSConnector folder
+1. Zip these files, using the built in Windows tools or the zip tool of your choice, but be sure to use the `.zip` format
+1. Rename the `.zip` file extension to `.mez`
+1. Place this `.mez` folder in the same location described in [Setup](#Setup)
+
+To change the settings of the connector:
+
+1. Unzip the `.mez` into a folder
+1. Make the necessary changes in the output folder, for example to the `tenant_id` and `client_id` files
+1. Select all the files in that folder and zip those files using the `.zip` format
+1. Rename the `.zip` file extension to `.mez`
+1. Rename or move the old `.mez` file so that Power BI does not load it, and replace it with the updated `.mez` file
 
 ## Using the Connector
 

@@ -10,7 +10,9 @@ import com.google.gson.JsonParser;
 
 import java.io.*;
 import java.net.*;
+import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Date;
 import java.util.Properties;
 import java.util.zip.GZIPInputStream;
@@ -66,6 +68,24 @@ public class BaseClient {
      * Creates a baseclient using the passed information rather than the
      * configuration settings
      * 
+     * @param apiVersion API version of SDS
+     * @param tenantId   The tenant identifier
+     * @param resource   SDS url
+     */
+    public BaseClient(String apiVersion, String tenantId, String resource) {
+        this.TenantId = tenantId;
+        this.Resource = resource;
+        this.Resource = this.Resource.endsWith("/") ? this.Resource : this.Resource + "/";
+
+        this.baseUrl = this.Resource;
+        this.apiVersion = apiVersion;
+        this.mGson = new Gson();
+    }
+
+    /**
+     * Creates a baseclient using the passed information rather than the
+     * configuration settings
+     * 
      * @param apiVersion   APIversion of OCS
      * @param tenantId     The tenant identifier
      * @param clientId     Client id to login with
@@ -93,7 +113,10 @@ public class BaseClient {
      */
     public HttpURLConnection getConnection(URL url, String method) {
         HttpURLConnection urlConnection = null;
-        String token = AcquireAuthToken();
+        String token = "";
+        if (!this.ClientId.isEmpty()) {
+            token = AcquireAuthToken();
+        }
 
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
@@ -101,7 +124,9 @@ public class BaseClient {
             urlConnection.setRequestProperty("Accept", "*/*; q=1");
             urlConnection.setRequestProperty("Accept-Encoding", "gzip");
             urlConnection.setRequestProperty("Content-Type", "application/json");
-            urlConnection.setRequestProperty("Authorization", "Bearer " + token);
+            if (token != null && !token.isEmpty()) {
+                urlConnection.setRequestProperty("Authorization", "Bearer " + token);
+            }
             urlConnection.setUseCaches(false);
             urlConnection.setConnectTimeout(50000);
             urlConnection.setReadTimeout(50000);
@@ -121,6 +146,36 @@ public class BaseClient {
         }
 
         return urlConnection;
+    }
+
+    /**
+     * Makes the connection to the url
+     * 
+     * @param url    the url to connect to
+     * @param method the method to do, put, get, delete, etc...
+     * @return
+     */
+    public HttpRequest.Builder getRequest(URI url) {
+        HttpRequest.Builder builder = null;
+        String token = "";
+        if (!this.ClientId.isEmpty()) {
+            token = AcquireAuthToken();
+        }
+
+        try {
+            builder = HttpRequest.newBuilder(url).header("Accept", "*/*; q=1").header("Accept-Encoding", "gzip")
+                    .header("Content-Type", "application/json");
+            if (token != null && !token.isEmpty()) {
+                builder.header("Authorization", "Bearer " + token);
+            }
+            builder.timeout(Duration.ofMillis(50000));
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return builder;
     }
 
     /**
@@ -144,9 +199,8 @@ public class BaseClient {
             URL discoveryUrl = new URL(Resource + "identity/.well-known/openid-configuration");
             URLConnection request = discoveryUrl.openConnection();
             request.connect();
-            JsonParser jp = new JsonParser();
-            JsonObject rootObj = jp
-                    .parse(new InputStreamReader((InputStream) request.getContent(), StandardCharsets.UTF_8))
+            JsonObject rootObj = JsonParser
+                    .parseReader(new InputStreamReader((InputStream) request.getContent(), StandardCharsets.UTF_8))
                     .getAsJsonObject();
             String tokenUrl = rootObj.get("token_endpoint").getAsString();
 
@@ -162,14 +216,16 @@ public class BaseClient {
                     + URLEncoder.encode(ClientSecret, "UTF-8") + "&grant_type=client_credentials";
             byte[] postData = postString.getBytes("UTF-8");
             tokenRequest.setRequestProperty("Content-Length", Integer.toString(postData.length));
-            tokenRequest.getOutputStream().write(postData);
+            try (OutputStream stream = tokenRequest.getOutputStream()) {
+                stream.write(postData);
+            }
 
-            InputStream in = new BufferedInputStream(tokenRequest.getInputStream());
-            String result = org.apache.commons.io.IOUtils.toString(in, "UTF-8");
-            in.close();
+            String result;
+            try (InputStream in = new BufferedInputStream(tokenRequest.getInputStream())) {
+                result = org.apache.commons.io.IOUtils.toString(in, "UTF-8");
+            }
 
-            jp = new JsonParser();
-            JsonObject response = jp.parse(result).getAsJsonObject();
+            JsonObject response = JsonParser.parseString(result).getAsJsonObject();
             cachedAccessToken = response.get("access_token").getAsString();
             Integer timeOut = response.get("expires_in").getAsInt();
             accessTokenExpiration = new Date(System.currentTimeMillis() + timeOut * 1000);
@@ -237,21 +293,17 @@ public class BaseClient {
         StringBuffer response = new StringBuffer();
 
         try {
-            InputStreamReader streamReader = null;
             String contentEncoding = urlConnection.getHeaderField("Content-Encoding");
-            if (contentEncoding != null && contentEncoding.equals("gzip")) {
-                GZIPInputStream gzip = new GZIPInputStream(urlConnection.getInputStream());
-                streamReader = new InputStreamReader(gzip);
-            } else {
-                streamReader = new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8);
-            }
 
-            BufferedReader in = new BufferedReader(streamReader);
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+            try (InputStreamReader streamReader = contentEncoding != null && contentEncoding.equals("gzip")
+                    ? new InputStreamReader(new GZIPInputStream(urlConnection.getInputStream()))
+                    : new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8)) {
+                try (BufferedReader in = new BufferedReader(streamReader)) {
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                }
             }
-            in.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
