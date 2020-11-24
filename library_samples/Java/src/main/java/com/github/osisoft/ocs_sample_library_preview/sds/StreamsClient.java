@@ -5,7 +5,9 @@
 package com.github.osisoft.ocs_sample_library_preview.sds;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
+
 import com.github.osisoft.ocs_sample_library_preview.BaseClient;
 import com.github.osisoft.ocs_sample_library_preview.SdsError;
 
@@ -14,6 +16,11 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Map;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 
 /**
  * StreamsClient
@@ -44,11 +51,11 @@ public class StreamsClient {
     private String getWindowQuery = dataBase
             + "?startIndex={startIndex}&endIndex={endIndex}&form={form}&filter={filter}";
     private String getRangeQuery = dataBase
-            + "/Transform?startIndex={startIndex}&endindex={endindex}&skip={skip}&count={count}&reversed={reverse}&boundaryType={boundaryType}";
+            + "/Transform?startIndex={startIndex}&endindex={endindex}&skip={skip}&count={count}&reversed={reversed}&boundaryType={boundaryType}";
     private String getRangeInterpolatedQuery = dataBase
             + "/Transform/Interpolated?startIndex={startIndex}&endindex={endindex}&count={count}";
     private String getRangeStreamViewQuery = dataBase
-            + "/Transform?startIndex={startIndex}&skip={skip}&count={count}&reversed={reverse}&boundaryType={boundaryType}&streamViewId={streamViewId}";
+            + "/Transform?startIndex={startIndex}&skip={skip}&count={count}&reversed={reversed}&boundaryType={boundaryType}&streamViewId={streamViewId}";
     private String updateMultiplePath = dataBase;
     private String replaceMultiplePath = dataBase + "?allowCreate=false";
     private String removeSingleQuery = dataBase + "?index={index}";
@@ -91,10 +98,11 @@ public class StreamsClient {
             urlConnection = baseClient.getConnection(url, "POST");
 
             String body = mGson.toJson(streamViewDef);
-            OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
-            writer.write(body);
-            writer.close();
+            try (OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream())) {
+                try (OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);) {
+                    writer.write(body);
+                }
+            }
 
             int httpResult = urlConnection.getResponseCode();
             if (baseClient.isSuccessResponseCode(httpResult)) {
@@ -216,10 +224,11 @@ public class StreamsClient {
             urlConnection = baseClient.getConnection(url, "POST");
 
             String body = mGson.toJson(streamDef);
-            OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
-            writer.write(body);
-            writer.close();
+            try (OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream())) {
+                try (OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);) {
+                    writer.write(body);
+                }
+            }
 
             int httpResult = urlConnection.getResponseCode();
             if (httpResult == HttpURLConnection.HTTP_OK) {
@@ -352,10 +361,11 @@ public class StreamsClient {
             urlConnection = baseClient.getConnection(url, "PUT");
 
             String body = mGson.toJson(streamDef);
-            OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
-            writer.write(body);
-            writer.close();
+            try (OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream())) {
+                try (OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);) {
+                    writer.write(body);
+                }
+            }
 
             int httpResult = urlConnection.getResponseCode();
             if (baseClient.isSuccessResponseCode(httpResult)) {
@@ -429,10 +439,11 @@ public class StreamsClient {
             urlConnection = baseClient.getConnection(url, "PUT");
 
             String body = mGson.toJson(tags);
-            OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
-            writer.write(body);
-            writer.close();
+            try (OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream())) {
+                try (OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);) {
+                    writer.write(body);
+                }
+            }
 
             int httpResult = urlConnection.getResponseCode();
             if (baseClient.isSuccessResponseCode(httpResult)) {
@@ -514,19 +525,59 @@ public class StreamsClient {
             urlConnection = baseClient.getConnection(url, "PUT");
 
             String body = mGson.toJson(metadata);
-            OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
-            writer.write(body);
-            writer.close();
+            try (OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream())) {
+                try (OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);) {
+                    writer.write(body);
+                }
+            }
 
             int httpResult = urlConnection.getResponseCode();
             if (baseClient.isSuccessResponseCode(httpResult)) {
             } else {
-                throw new SdsError(urlConnection, "update stream request failed");
+                throw new SdsError(urlConnection, "update stream metadata request failed");
             }
         } catch (SdsError sdsError) {
             sdsError.print();
             throw sdsError;
+        } catch (MalformedURLException mal) {
+            System.out.println("MalformedURLException");
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /***
+     * patches the metadata of a stream
+     * 
+     * @param tenantId    tenant to work against
+     * @param namespaceId namespace to work against
+     * @param streamId    the stream to update the meta data of
+     * @param patch       JsonArray
+     * @throws SdsError any error that occurs
+     */
+    public void patchMetadata(String tenantId, String namespaceId, String streamId, JsonArray patch) throws SdsError {
+
+        try {
+            HttpClient httpClient = HttpClient.newHttpClient();
+
+            String url = baseUrl + getStreamPath.replace("{apiVersion}", apiVersion).replace("{tenantId}", tenantId)
+                    .replace("{namespaceId}", namespaceId).replace("{streamId}", streamId) + "/Metadata";
+            URI uri = URI.create(url);
+            String body = mGson.toJson(patch);
+            HttpRequest request = baseClient.getRequest(uri).method("PATCH", BodyPublishers.ofString(body)).build();
+
+            HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+            int httpResult = response.statusCode();
+            if (baseClient.isSuccessResponseCode(httpResult)) {
+            } else {
+                throw new Error("patch stream metadata request failed");
+            }
+        } catch (Error error) {
+            throw error;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         } catch (MalformedURLException mal) {
             System.out.println("MalformedURLException");
         } catch (IllegalStateException e) {
@@ -597,10 +648,11 @@ public class StreamsClient {
                             .replace("{namespaceId}", namespaceId).replace("{streamId}", streamId));
             urlConnection = baseClient.getConnection(url, "POST");
 
-            OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
-            writer.write(json);
-            writer.close();
+            try (OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream())) {
+                try (OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);) {
+                    writer.write(json);
+                }
+            }
 
             int httpResult = urlConnection.getResponseCode();
             if (baseClient.isSuccessResponseCode(httpResult)) {
@@ -884,15 +936,15 @@ public class StreamsClient {
      * @param startIndex   the starting index
      * @param skip         number of values to skip (good for paging)
      * @param count        number of values to return
-     * @param reverse      whether to go forward or backward in regards to the index
+     * @param reversed     whether to go forward or backward in regards to the index
      *                     when getting more values
      * @param boundaryType SdsBoundaryType
      * @return string of the array of values
      * @throws SdsError any error that occurs
      */
     public String getRangeValues(String tenantId, String namespaceId, String streamId, String startIndex, int skip,
-            int count, boolean reverse, SdsBoundaryType boundaryType) throws SdsError {
-        return getRangeValues(tenantId, namespaceId, streamId, startIndex, "", skip, count, reverse, boundaryType);
+            int count, boolean reversed, SdsBoundaryType boundaryType) throws SdsError {
+        return getRangeValues(tenantId, namespaceId, streamId, startIndex, "", skip, count, reversed, boundaryType);
     }
 
     /**
@@ -905,14 +957,14 @@ public class StreamsClient {
      * @param endIndex     the ending index
      * @param skip         number of values to skip (good for paging)
      * @param count        number of values to return
-     * @param reverse      whether to go forward or backward in regards to the index
+     * @param reversed     whether to go forward or backward in regards to the index
      *                     when getting more values
      * @param boundaryType SdsBoundaryType
      * @return string of the array of values
      * @throws SdsError any error that occurs
      */
     public String getRangeValues(String tenantId, String namespaceId, String streamId, String startIndex,
-            String endIndex, int skip, int count, boolean reverse, SdsBoundaryType boundaryType) throws SdsError {
+            String endIndex, int skip, int count, boolean reversed, SdsBoundaryType boundaryType) throws SdsError {
         URL url = null;
         HttpURLConnection urlConnection = null;
         String response = "";
@@ -921,7 +973,7 @@ public class StreamsClient {
             String intermediate = getRangeQuery.replace("{apiVersion}", apiVersion).replace("{tenantId}", tenantId)
                     .replace("{namespaceId}", namespaceId).replace("{streamId}", streamId)
                     .replace("{startIndex}", startIndex).replace("{endindex}", endIndex).replace("{skip}", "" + skip)
-                    .replace("{count}", "" + count).replace("{reverse}", "" + reverse)
+                    .replace("{count}", "" + count).replace("{reversed}", "" + reversed)
                     .replace("{boundaryType}", "" + boundaryType);
             if (endIndex.equals("")) {
                 intermediate = intermediate.replace("&endindex=", "");
@@ -1008,7 +1060,7 @@ public class StreamsClient {
      * @param startIndex   the starting index
      * @param skip         the number of values to skip (good for paging)
      * @param count        the number of values to return
-     * @param reverse      whether to go forward or backward in regards to the index
+     * @param reversed     whether to go forward or backward in regards to the index
      *                     when getting more values
      * @param boundaryType SdsBoundaryType
      * @param streamViewId the streamview definition to desribe how to view the data
@@ -1016,7 +1068,7 @@ public class StreamsClient {
      * @throws SdsError any error that occurs
      */
     public String getRangeValuesStreamView(String tenantId, String namespaceId, String streamId, String startIndex,
-            int skip, int count, boolean reverse, SdsBoundaryType boundaryType, String streamViewId) throws SdsError {
+            int skip, int count, boolean reversed, SdsBoundaryType boundaryType, String streamViewId) throws SdsError {
         URL url = null;
         HttpURLConnection urlConnection = null;
         String response = "";
@@ -1025,7 +1077,7 @@ public class StreamsClient {
             url = new URL(baseUrl + getRangeStreamViewQuery.replace("{apiVersion}", apiVersion)
                     .replace("{tenantId}", tenantId).replace("{namespaceId}", namespaceId)
                     .replace("{streamId}", streamId).replace("{startIndex}", startIndex).replace("{skip}", "" + skip)
-                    .replace("{count}", "" + count).replace("{reverse}", "" + reverse)
+                    .replace("{count}", "" + count).replace("{reversed}", "" + reversed)
                     .replace("{boundaryType}", "" + boundaryType).replace("{streamViewId}", "" + streamViewId));
             urlConnection = baseClient.getConnection(url, "GET");
 
@@ -1070,10 +1122,11 @@ public class StreamsClient {
                             .replace("{namespaceId}", namespaceId).replace("{streamId}", streamId));
             urlConnection = baseClient.getConnection(url, "PUT");
 
-            OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
-            writer.write(json);
-            writer.close();
+            try (OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream())) {
+                try (OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);) {
+                    writer.write(json);
+                }
+            }
 
             int httpResult = urlConnection.getResponseCode();
             if (baseClient.isSuccessResponseCode(httpResult)) {
@@ -1111,10 +1164,11 @@ public class StreamsClient {
                             .replace("{namespaceId}", namespaceId).replace("{streamId}", streamId));
             urlConnection = baseClient.getConnection(url, "PUT");
 
-            OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
-            writer.write(json);
-            writer.close();
+            try (OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream())) {
+                try (OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);) {
+                    writer.write(json);
+                }
+            }
 
             int httpResult = urlConnection.getResponseCode();
             if (baseClient.isSuccessResponseCode(httpResult)) {
@@ -1229,10 +1283,11 @@ public class StreamsClient {
             urlConnection = baseClient.getConnection(url, "PUT");
 
             String json = "";
-            OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
-            writer.write(json);
-            writer.close();
+            try (OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream())) {
+                try (OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);) {
+                    writer.write(json);
+                }
+            }
 
             int httpResult = urlConnection.getResponseCode();
             if (baseClient.isSuccessResponseCode(httpResult)) {

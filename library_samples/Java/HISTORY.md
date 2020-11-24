@@ -1,5 +1,28 @@
 # Version History
 
+## 0.0.22-preview / 2020-11-03
+
+- Polaris fixes
+- Use try() blocks to ensure resources are closed
+
+## 0.0.21-preview / 2020-11-02
+
+- Updated dependencies
+
+## 0.0.20-preview / 2020-10-19
+
+- Add metadata patch method to streamsclient
+
+## 0.0.19-preview / 2020-08-06
+
+- Updated dependencies
+
+## 0.0.18-preview / 2020-07-23
+
+- Fix naming of `reversed` flag in stream API calls
+- Updated to return first/next URL links from Data View API data calls
+- Added EDSClient to support API calls against SDS in Edge Data Store
+
 ## 0.0.17-preview / 2020-06-11
 
 - Updated dependencies

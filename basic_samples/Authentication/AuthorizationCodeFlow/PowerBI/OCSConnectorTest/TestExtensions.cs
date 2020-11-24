@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Threading;
 using Appium.Interfaces.Generic.SearchContext;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Appium.Interfaces;
@@ -11,7 +12,8 @@ namespace OCSConnectorTest
 {
     public static class TestExtensions
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Catch intended for retry logic")]
+        private const int SLEEP = 2;
+
         public static T TryFindElementByName<T>(this IGenericFindsByName<T> element, string name, int seconds = 30) where T : IWebElement
         {
             if (element == null)
@@ -19,6 +21,7 @@ namespace OCSConnectorTest
                 throw new ArgumentNullException(nameof(element));
             }
 
+            Thread.Sleep(TimeSpan.FromSeconds(SLEEP));
             Stopwatch sw = Stopwatch.StartNew();
             while (sw.Elapsed < TimeSpan.FromSeconds(seconds))
             {
@@ -35,7 +38,6 @@ namespace OCSConnectorTest
             return default;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Catch intended for retry logic")]
         public static T TryClickAndFindElementByName<T>(this IGenericFindsByName<T> element, IWebElement button, string name, int seconds = 30) where T : IWebElement
         {
             if (element == null)
@@ -48,6 +50,7 @@ namespace OCSConnectorTest
                 throw new ArgumentNullException(nameof(button));
             }
 
+            Thread.Sleep(TimeSpan.FromSeconds(SLEEP));
             Stopwatch sw = Stopwatch.StartNew();
             while (sw.Elapsed < TimeSpan.FromSeconds(seconds))
             {
@@ -70,7 +73,6 @@ namespace OCSConnectorTest
             return default;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Catch intended for retry logic")]
         public static T TryFindElementByAccessibilityId<T>(this IFindByAccessibilityId<T> element, string selector, int seconds = 30) where T : IWebElement
         {
             if (element == null)
@@ -78,6 +80,7 @@ namespace OCSConnectorTest
                 throw new ArgumentNullException(nameof(element));
             }
 
+            Thread.Sleep(TimeSpan.FromSeconds(SLEEP));
             Stopwatch sw = Stopwatch.StartNew();
             while (sw.Elapsed < TimeSpan.FromSeconds(seconds))
             {
@@ -94,7 +97,6 @@ namespace OCSConnectorTest
             return default;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Catch intended for retry logic")]
         public static T TryClickAndFindElementByAccessibilityId<T>(this IFindByAccessibilityId<T> element, IWebElement button, string selector, int seconds = 30) where T : IWebElement
         {
             if (element == null)
@@ -107,6 +109,7 @@ namespace OCSConnectorTest
                 throw new ArgumentNullException(nameof(button));
             }
 
+            Thread.Sleep(TimeSpan.FromSeconds(SLEEP));
             Stopwatch sw = Stopwatch.StartNew();
             while (sw.Elapsed < TimeSpan.FromSeconds(seconds))
             {
@@ -129,7 +132,6 @@ namespace OCSConnectorTest
             return default;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Catch intended for retry logic")]
         public static ReadOnlyCollection<T> TryFindElementsByName<T>(this IGenericFindsByName<T> element, string name, int seconds = 30) where T : IWebElement
         {
             if (element == null)
@@ -137,6 +139,7 @@ namespace OCSConnectorTest
                 throw new ArgumentNullException(nameof(element));
             }
 
+            Thread.Sleep(TimeSpan.FromSeconds(SLEEP));
             Stopwatch sw = Stopwatch.StartNew();
             while (sw.Elapsed < TimeSpan.FromSeconds(seconds))
             {
@@ -153,7 +156,6 @@ namespace OCSConnectorTest
             return default;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Catch intended for retry logic")]
         public static ReadOnlyCollection<T> TryClickAndFindElementsByName<T>(this IGenericFindsByName<T> element, IWebElement button, string name, int seconds = 30) where T : IWebElement
         {
             if (element == null)
@@ -166,6 +168,7 @@ namespace OCSConnectorTest
                 throw new ArgumentNullException(nameof(button));
             }
 
+            Thread.Sleep(TimeSpan.FromSeconds(SLEEP));
             Stopwatch sw = Stopwatch.StartNew();
             while (sw.Elapsed < TimeSpan.FromSeconds(seconds))
             {

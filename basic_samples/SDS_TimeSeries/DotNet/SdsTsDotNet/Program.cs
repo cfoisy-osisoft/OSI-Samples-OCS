@@ -16,14 +16,13 @@ namespace SdsTsDotNet
     public static class Program
     {
         private static IConfiguration _configuration;
-        private static Exception _toThrow = null;
+        private static Exception _toThrow;
 
         public static void Main()
         {
             MainAsync().GetAwaiter().GetResult();
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Sample needs to ensure cleanup, and will throw last error encountered.")]
         public static async Task<bool> MainAsync(bool test = false)
         {
             ISdsMetadataService metadataService = null;
@@ -292,23 +291,23 @@ namespace SdsTsDotNet
         }
 
         #region step4b
-        public static List<TimeData> GetPressureData()
+        public static IList<TimeData> GetPressureData()
         {
-            List<PressureTemperatureData> data = GetData();
+            var data = GetData();
             return data.Select(entry => new TimeData() { Time = entry.Time, Value = entry.Pressure }).ToList();
         }
 
-        public static List<TimeData> GetTemperatureData()
+        public static IList<TimeData> GetTemperatureData()
         {
-            List<PressureTemperatureData> data = GetData();
+            var data = GetData();
             return data.Select(entry => new TimeData() { Time = entry.Time, Value = entry.Temperature }).ToList();
         }
         #endregion
 
         #region step4a
-        public static List<PressureTemperatureData> GetData()
+        public static IList<PressureTemperatureData> GetData()
         {
-            List<PressureTemperatureData> values = new List<PressureTemperatureData>
+            var values = new List<PressureTemperatureData>
             {
                 new PressureTemperatureData() { Pressure = 346, Temperature = 91, Time = DateTime.Parse("2017-01-11T22:21:23.430Z", CultureInfo.InvariantCulture) },
                 new PressureTemperatureData() { Pressure = 0, Temperature = 0, Time = DateTime.Parse("2017-01-11T22:22:23.430Z", CultureInfo.InvariantCulture) },
@@ -323,9 +322,9 @@ namespace SdsTsDotNet
         }
         #endregion
 
-        public static List<PressureTemperatureData> GetData2()
+        public static IList<PressureTemperatureData> GetData2()
         {
-            List<PressureTemperatureData> values = new List<PressureTemperatureData>
+            var values = new List<PressureTemperatureData>
             {
                 new PressureTemperatureData() { Pressure = 345, Temperature = 89, Time = DateTime.Parse("2017-01-11T22:20:23.430Z", CultureInfo.InvariantCulture) },
                 new PressureTemperatureData() { Pressure = 356, Temperature = 0, Time = DateTime.Parse("2017-01-11T22:21:23.430Z", CultureInfo.InvariantCulture) },
@@ -343,7 +342,6 @@ namespace SdsTsDotNet
         /// </summary>
         /// <param name="methodToRun">The method to run.</param>
         /// <param name="value">The value to put into the method to run</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Sample needs to ensure cleanup, and will throw last error encountered.")]
         private static async Task RunInTryCatch(Func<string, Task> methodToRun, string value)
         {
             try
@@ -365,7 +363,6 @@ namespace SdsTsDotNet
         /// </summary>
         /// <param name="methodToRun">The method to run.</param>
         /// <param name="value">The value to put into the method to run</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Method runs code that is expected to throw an exception.")]
         private static async Task RunInTryCatchExpectException(Func<string, Task> methodToRun, string value)
         {
             try

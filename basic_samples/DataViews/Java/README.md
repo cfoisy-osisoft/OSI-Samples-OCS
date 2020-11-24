@@ -1,8 +1,8 @@
-# Using the OCS Dataview Service in Java
+# Using OCS Data Views in Java
 
-**Version:** 0.1.2
+**Version:** 1.0.2
 
-[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/DataViews_Java?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=884&branchName=master)
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OCS/DataViews_Java?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=884&branchName=master)
 
 The sample code in this demonstrates how to invoke Data View REST APIs via the sample Java client [library](https://github.com/osisoft/OSI-Samples/tree/master/library_samples/Java). The sample demonstrates how to establish a connection to SDS, obtain an authorization token, create an SdsType and SdsStream with data (if needed), create a data view, update it, retrieve it, and retrieve data from it in different ways. At the end of the sample, everything that was created is deleted.
 
@@ -14,6 +14,7 @@ Using Eclipse or any IDE:
 1. Install Maven.
 1. \*Install the ocs_sample_library_preview to your local Maven repo using run mvn install pom.xml from `\library_samples\Java\`
 1. If you are using Eclipse, select `File` > `Import` > `Maven`> `Existing maven project` and then select the local copy.
+1. The sample is configured using the file [config.placeholder.properties](config.placeholder.properties). Before editing, rename this file to `config.properties`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
 1. Replace the configuration strings in `config.properties`
 
 Using a command line:

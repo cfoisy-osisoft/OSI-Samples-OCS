@@ -19,7 +19,6 @@ namespace SdsClientLibraries
 
         public static void Main() => MainAsync().GetAwaiter().GetResult();
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Sample needs to ensure cleanup, and will throw last error encountered.")]
         public static async Task<bool> MainAsync(bool test = false)
         {            
             IConfigurationBuilder builder = new ConfigurationBuilder()
@@ -394,10 +393,25 @@ namespace SdsClientLibraries
                 Console.WriteLine("Metadata key Region: " + await metadataService.GetStreamMetadataValueAsync(streamId, "Region").ConfigureAwait(false));
                 Console.WriteLine("Metadata key Country: " + await metadataService.GetStreamMetadataValueAsync(streamId, "Country").ConfigureAwait(false));
                 Console.WriteLine("Metadata key Province: " + await metadataService.GetStreamMetadataValueAsync(streamId, "Province").ConfigureAwait(false));
-
                 Console.WriteLine();
 
                 // Step 17
+                // update metadata
+                Console.WriteLine("Let's make some changes to the Metadata on our stream:");
+                var patch = new MetadataPatchDocument();
+                patch.Remove("Region");
+                patch.Replace("Province", "Ontario");
+                patch.Add("City", "Toronto");
+                await metadataService.PatchStreamMetadataAsync(streamId, patch).ConfigureAwait(false);
+
+                Console.WriteLine();
+                Console.WriteLine($"Metadata now associated with {streamId}:");
+                Console.WriteLine("Metadata key Country: " + await metadataService.GetStreamMetadataValueAsync(streamId, "Country").ConfigureAwait(false));
+                Console.WriteLine("Metadata key Province: " + await metadataService.GetStreamMetadataValueAsync(streamId, "Province").ConfigureAwait(false));
+                Console.WriteLine("Metadata key City: " + await metadataService.GetStreamMetadataValueAsync(streamId, "City").ConfigureAwait(false));
+                Console.WriteLine();
+
+                // Step 18
                 // delete values
                 Console.WriteLine("Deleting values from the SdsStream");
 
@@ -415,7 +429,7 @@ namespace SdsClientLibraries
 
                 Console.WriteLine();
 
-                // Step 18
+                // Step 19
                 // Adding a new stream with a secondary index.
                 Console.WriteLine("Adding a stream with a secondary index.");
 
@@ -462,7 +476,7 @@ namespace SdsClientLibraries
                 Console.WriteLine($"Secondary indexes on streams. {stream.Id}:{stream.Indexes?.Count}. {secondary.Id}:{secondary.Indexes?.Count}. ");
                 Console.WriteLine();
 
-                // Step 19
+                // Step 20
                 // Adding Compound Index Type
                 Console.WriteLine("Creating an SdsType with a compound index");
                 SdsType typeCompound = SdsTypeBuilder.CreateSdsType<WaveDataCompound>();
@@ -480,7 +494,7 @@ namespace SdsClientLibraries
                 };
                 streamCompound = await metadataService.GetOrCreateStreamAsync(streamCompound).ConfigureAwait(false);
 
-                // Step 20
+                // Step 21
                 // insert compound data
                 Console.WriteLine("Inserting data");
                 await dataService.InsertValueAsync(streamCompound.Id, GetWaveMultiplier(1, 10)).ConfigureAwait(false);
@@ -513,7 +527,7 @@ namespace SdsClientLibraries
             }
             finally
             {
-                // Step 21
+                // Step 22
                 Console.WriteLine();
                 Console.WriteLine("Cleaning up");
 
@@ -546,7 +560,6 @@ namespace SdsClientLibraries
         /// </summary>
         /// <param name="methodToRun">The method to run.</param>
         /// <param name="value">The value to put into the method to run</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Sample needs to ensure cleanup, and will throw last error encountered.")]
         private static async Task RunInTryCatch(Func<string, Task> methodToRun, string value)
         {
             try
